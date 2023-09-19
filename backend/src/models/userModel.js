@@ -1,20 +1,22 @@
-const mysql = require("mysql");
+const mysql = require("mysql2/promise");
 const bcrypt = require("bcrypt");
 const dotenv = require("dotenv");
 
 dotenv.config();
 
-const db = mysql.createConnection({
+const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
 });
 
 async function registerUser(username, email, password) {
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const currentDate = new Date().toISOString().slice(0, 19).replace("T", " ");
 
     const insertUserQuery = `
@@ -22,24 +24,18 @@ async function registerUser(username, email, password) {
       VALUES (?, ?, ?, ?, ?, ?)
     `;
 
+    const connection = await pool.getConnection();
 
-    db.connect();
+    const [result] = await connection.query(insertUserQuery, [
+      username,
+      email,
+      hashedPassword,
+      false,
+      currentDate,
+      currentDate,
+    ]);
 
-    const result = await new Promise((resolve, reject) => {
-      db.query(
-        insertUserQuery,
-        [username, email, hashedPassword, false, currentDate, currentDate],
-        (err, results) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(results);
-          }
-        }
-      );
-    });
-
-    db.end();
+    connection.release();
 
     if (result.affectedRows === 1) {
       return { username, email };
@@ -53,50 +49,31 @@ async function registerUser(username, email, password) {
 
 async function loginUser(email, password) {
   try {
-    const db = mysql.createConnection({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_DATABASE,
-    });
+    const [rows] = await pool.query("SELECT * FROM Users WHERE Email = ?", [
+      email,
+    ]);
 
-    await db.connect();
+    if (!rows[0]) {
+      console.log("User not found for email:", email);
+      return null;
+    }
 
-    const results = await new Promise((resolve, reject) => {
-      db.query('SELECT * FROM Users WHERE Email = ?', [email], async (err, results) => {
-        if (err) {
-          db.end();
-          console.error('Database query error:', err);
-          reject(err);
-        }
+    const passwordMatch = await bcrypt.compare(password, rows[0].Password);
 
-        if (!results[0]) {
-          db.end();
-          console.log('User not found for email:', email);
-          resolve(null);
-        }
+    if (!passwordMatch) {
+      console.log("Invalid password for email:", email);
+      return null;
+    }
 
-        const passwordMatch = await bcrypt.compare(password, results[0].Password);
+    const user = {
+      userId: rows[0].UserID,
+      username: rows[0].Username,
+      email: rows[0].Email,
+    };
 
-        db.end();
-
-        if (!passwordMatch) {
-          console.log('Invalid password for email:', email);
-          resolve(null);
-        }
-        const user = {
-          userId: results[0].UserID,
-          username: results[0].Username,
-          email: results[0].Email,
-        };
-        resolve(user);
-      });
-    });
-
-    return results; // Return the user object
-
+    return user;
   } catch (err) {
-    console.error('Database error during login:', err);
+    console.error("Database error during login:", err);
     throw err;
   }
 }

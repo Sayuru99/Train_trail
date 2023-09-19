@@ -6,3 +6,4 @@ npm-debug.log
 .DS_Store
 \backend\node_modules\*
 !node_modules/**
+package-lock.json
