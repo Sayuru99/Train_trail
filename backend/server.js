@@ -27,15 +27,17 @@ db.connect((err) => {
 });
 
 const authRoutes = require('./src/routes/authRoutes');
+const userRoutes = require('./src/routes/userRoutes');
 const { authenticateJwt } = require('./src/middleware/authMiddleware');
 
-app.use('/api/users', authRoutes); 
+app.use('/api/auth', authRoutes); 
+app.use('/api/users', userRoutes);
 
 app.get('/api/protected', authenticateJwt, (req, res) => {
   res.json({ message: 'Protected route' });
 });
 
-app.get('/',(re,res) =>{
+app.get('/',(req,res) =>{
   return res.json("Backend Bruh!");
 })
 

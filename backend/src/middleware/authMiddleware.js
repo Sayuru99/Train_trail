@@ -31,4 +31,12 @@ function authenticateJwt(req, res, next) {
   });
 }
 
-module.exports = { generateJwtToken, authenticateJwt };
+const isAdmin = (req, res, next) => {
+  if (req.user && req.user.userType === 1) {
+    next();
+  } else {
+    res.status(403).json({ error: 'Access denied: Admin privileges required' });
+  }
+};
+
+module.exports = { generateJwtToken, authenticateJwt, isAdmin };
