@@ -26,12 +26,10 @@ db.connect((err) => {
   }
 });
 
-const userRoutes = require('./src/routes/userRoutes');
-const loginRoutes = require('./src/routes/loginRoutes');
+const authRoutes = require('./src/routes/authRoutes');
 const { authenticateJwt } = require('./src/middleware/authMiddleware');
 
-app.use('/api/users', userRoutes); 
-app.use('/api/users', loginRoutes);
+app.use('/api/users', authRoutes); 
 
 app.get('/api/protected', authenticateJwt, (req, res) => {
   res.json({ message: 'Protected route' });

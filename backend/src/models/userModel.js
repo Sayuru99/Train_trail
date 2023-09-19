@@ -53,35 +53,52 @@ async function registerUser(username, email, password) {
 
 async function loginUser(email, password) {
   try {
-    // Create a new database connection
     const db = mysql.createConnection({
       host: process.env.DB_HOST,
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
     });
+
     await db.connect();
 
-    const user = await db.query('SELECT * FROM Users WHERE Email = ?', [email]);
+    const results = await new Promise((resolve, reject) => {
+      db.query('SELECT * FROM Users WHERE Email = ?', [email], async (err, results) => {
+        if (err) {
+          db.end();
+          console.error('Database query error:', err);
+          reject(err);
+        }
 
-    if (!user[0]) {
-      db.end(); 
-      return "Error";
-    }
+        if (!results[0]) {
+          db.end();
+          console.log('User not found for email:', email);
+          resolve(null);
+        }
 
-    const passwordMatch = await bcrypt.compare(password, user[0].Password);
+        const passwordMatch = await bcrypt.compare(password, results[0].Password);
 
-    db.end();
+        db.end();
 
-    if (!passwordMatch) {
-      return "Fucked";
-    }
+        if (!passwordMatch) {
+          console.log('Invalid password for email:', email);
+          resolve(null);
+        }
+        const user = {
+          userId: results[0].UserID,
+          username: results[0].Username,
+          email: results[0].Email,
+        };
+        resolve(user);
+      });
+    });
 
-    return { username: user[0].Username, email: user[0].Email };
-  } catch (error) {
-    throw error;
+    return results; // Return the user object
+
+  } catch (err) {
+    console.error('Database error during login:', err);
+    throw err;
   }
 }
-
 
 module.exports = { registerUser, loginUser };
