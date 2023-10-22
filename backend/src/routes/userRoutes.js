@@ -1,13 +1,11 @@
-
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
-const mysql = require('mysql2/promise'); 
+const mysql = require('mysql2/promise');
 const dotenv = require('dotenv');
 const { isAdmin } = require('../middleware/authMiddleware');
 
 dotenv.config();
-
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
@@ -19,14 +17,13 @@ const pool = mysql.createPool({
   queueLimit: 0,
 });
 
-
 router.post('/add', isAdmin, async (req, res) => {
   try {
     const { username, password, email } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const insertUserQuery = `
-      INSERT INTO users (Username, Password, Email, UserType, CreatedOn, UpdatedOn)
+      INSERT INTO passenger (Username, Password, Email, UserType, CreatedOn, UpdatedOn)
       VALUES (?, ?, ?, ?, NOW(), NOW())
     `;
 
@@ -36,7 +33,7 @@ router.post('/add', isAdmin, async (req, res) => {
       username,
       hashedPassword,
       email,
-      0, 
+      0,
     ]);
 
     connection.release();
@@ -57,7 +54,7 @@ router.delete('/:userId', isAdmin, async (req, res) => {
     const userId = req.params.userId;
 
     const deleteUserQuery = `
-      DELETE FROM users WHERE UserID = ?
+      DELETE FROM passenger WHERE PassengerID = ?
     `;
 
     const connection = await pool.getConnection();
@@ -82,20 +79,18 @@ router.put('/:userId', isAdmin, async (req, res) => {
     const userId = req.params.userId;
     const { username, password, email } = req.body;
 
-    // Hash the updated password if provided
     let hashedPassword = password;
     if (password) {
       hashedPassword = await bcrypt.hash(password, 10);
     }
 
     const updateUserQuery = `
-      UPDATE users
+      UPDATE passenger
       SET Username = ?, Password = ?, Email = ?
-      WHERE UserID = ?
+      WHERE PassengerID = ?
     `;
 
     const connection = await pool.getConnection();
-
     const [result] = await connection.query(updateUserQuery, [
       username,
       hashedPassword,
@@ -116,21 +111,20 @@ router.put('/:userId', isAdmin, async (req, res) => {
   }
 });
 
-router.get('/', async (req, res) => {
+router.get('/', isAdmin, async (req, res) => {
   try {
-    const getAllUsersQuery = 'SELECT * FROM users';
+    const getAllUsersQuery = 'SELECT * FROM passenger';
 
     const connection = await pool.getConnection();
-
     const [users] = await connection.query(getAllUsersQuery);
 
     connection.release();
-
     res.json({ users });
   } catch (error) {
     console.error('Error getting users: ', error);
     res.status(500).json({ error: 'Failed to retrieve users' });
   }
 });
+
 
 module.exports = router;

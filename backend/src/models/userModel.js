@@ -17,11 +17,10 @@ const pool = mysql.createPool({
 async function registerUser(username, email, password) {
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const currentDate = new Date().toISOString().slice(0, 19).replace("T", " ");
 
     const insertUserQuery = `
-      INSERT INTO Users (Username, Email, Password, UserType, CreatedOn, UpdatedOn)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO Passenger (Username, Email, Password, UserType)
+      VALUES (?, ?, ?, ?)
     `;
 
     const connection = await pool.getConnection();
@@ -30,9 +29,7 @@ async function registerUser(username, email, password) {
       username,
       email,
       hashedPassword,
-      false,
-      currentDate,
-      currentDate,
+      0,
     ]);
 
     connection.release();
@@ -49,7 +46,7 @@ async function registerUser(username, email, password) {
 
 async function loginUser(email, password) {
   try {
-    const [rows] = await pool.query("SELECT * FROM Users WHERE Email = ?", [
+    const [rows] = await pool.query("SELECT * FROM Passenger WHERE Email = ?", [
       email,
     ]);
 
@@ -66,7 +63,7 @@ async function loginUser(email, password) {
     }
 
     const user = {
-      userId: rows[0].UserID,
+      userId: rows[0].PassengerID,
       username: rows[0].Username,
       email: rows[0].Email,
     };

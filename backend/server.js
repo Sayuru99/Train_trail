@@ -28,10 +28,12 @@ db.connect((err) => {
 
 const authRoutes = require('./src/routes/authRoutes');
 const userRoutes = require('./src/routes/userRoutes');
+const trainRoutes = require('./src/routes/trainRoutes');
 const { authenticateJwt } = require('./src/middleware/authMiddleware');
 
 app.use('/api/auth', authRoutes); 
 app.use('/api/users', userRoutes);
+app.use('/api/trains', trainRoutes);
 
 app.get('/api/protected', authenticateJwt, (req, res) => {
   res.json({ message: 'Protected route' });
@@ -40,7 +42,6 @@ app.get('/api/protected', authenticateJwt, (req, res) => {
 app.get('/',(req,res) =>{
   return res.json("Backend Bruh!");
 })
-
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
