@@ -32,10 +32,10 @@ function authenticateJwt(req, res, next) {
 }
 
 const isAdmin = (req, res, next) => {
-  if (req.user && req.user.userType === 0) {
+  if (req.user && req.user.userType === 0) { //change user type to 1 before deploy
     next();
   } else {
-    // res.status(403).json({ error: 'Access denied: Admin privileges required' });
+    res.status(403).json({ error: 'Access denied: Admin privileges required' });
     next();
   }
 };

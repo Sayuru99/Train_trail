@@ -16,10 +16,8 @@ const pool = mysql.createPool({
 async function getAllTrains() {
   try {
     const getAllTrainsQuery = 'SELECT * FROM train';
-    const connection = await pool.getConnection();
-    const [trains] = await connection.query(getAllTrainsQuery);
-    connection.release();
-    return trains;
+    const [rows] = await pool.query(getAllTrainsQuery);
+    return rows;
   } catch (error) {
     throw error;
   }
@@ -27,16 +25,14 @@ async function getAllTrains() {
 
 async function addTrain(trainData) {
   try {
-    const { trainName, RouteID, Type, CreatedOnDate, UpdatedOnDate, Status } = trainData;
+    const { TrainName, RouteID, Type, CreatedOnDate, UpdatedOnDate, Status } = trainData;
 
     const insertTrainQuery = `
       INSERT INTO train (TrainName, RouteID, Type, CreatedOnDate, UpdatedOnDate, Status)
       VALUES (?, ?, ?, ?, ?, ?)
     `;
 
-    const connection = await pool.getConnection();
-    const [result] = await connection.query(insertTrainQuery, [trainName, RouteID, Type, CreatedOnDate, UpdatedOnDate, Status]);
-    connection.release();
+    const [result] = await pool.query(insertTrainQuery, [TrainName, RouteID, Type, CreatedOnDate, UpdatedOnDate, Status]);
 
     if (result.affectedRows === 1) {
       return { message: 'Train added successfully' };
@@ -48,7 +44,48 @@ async function addTrain(trainData) {
   }
 }
 
+async function addArrive(trainID, stationID) {
+  try {
+    const insertArriveQuery = `
+      INSERT INTO arrive (TrainID, StationID)
+      VALUES (?, ?)
+    `;
+    const [result] = await pool.query(insertArriveQuery, [trainID, stationID]);
+
+    if (result.affectedRows === 1) {
+      return { message: 'Arrival relationship added successfully' };
+    } else {
+      throw new Error('Arrival relationship addition failed');
+    }
+  } catch (error) {
+    throw error;
+  }
+}
+
+async function getTrainsBetweenStations(fromStationId, toStationId) {
+  try {
+    const getTrainsQuery = `
+      SELECT t.TrainName
+      FROM train t
+      INNER JOIN arrive a1 ON t.TrainID = a1.TrainID
+      INNER JOIN arrive a2 ON t.TrainID = a2.TrainID
+      WHERE a1.StationID = ? AND a2.StationID = ?
+    `;
+
+    const connection = await pool.getConnection();
+    const [trains] = await connection.query(getTrainsQuery, [fromStationId, toStationId]);
+    connection.release();
+S
+    return trains;s
+  } catch (error) {
+    throw error;
+  }
+}
+
+
 module.exports = {
   getAllTrains,
   addTrain,
+  addArrive,
+  getTrainsBetweenStations,
 };

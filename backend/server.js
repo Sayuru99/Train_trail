@@ -29,11 +29,15 @@ db.connect((err) => {
 const authRoutes = require('./src/routes/authRoutes');
 const userRoutes = require('./src/routes/userRoutes');
 const trainRoutes = require('./src/routes/trainRoutes');
+const newsRoutes = require('./src/routes/newsRoutes');
+const stationRoutes = require('./src/routes/stationRoutes');
 const { authenticateJwt } = require('./src/middleware/authMiddleware');
 
 app.use('/api/auth', authRoutes); 
 app.use('/api/users', userRoutes);
 app.use('/api/trains', trainRoutes);
+app.use('/api/stations', stationRoutes);
+app.use('/api/news', newsRoutes); 
 
 app.get('/api/protected', authenticateJwt, (req, res) => {
   res.json({ message: 'Protected route' });

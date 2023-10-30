@@ -1,6 +1,6 @@
-const mysql = require("mysql2/promise");
-const bcrypt = require("bcrypt");
-const dotenv = require("dotenv");
+const mysql = require('mysql2/promise');
+const bcrypt = require('bcrypt');
+const dotenv = require('dotenv');
 
 dotenv.config();
 
@@ -19,7 +19,7 @@ async function registerUser(username, email, password) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const insertUserQuery = `
-      INSERT INTO Passenger (Username, Email, Password, UserType)
+      INSERT INTO passenger (Username, Email, Password, UserType)
       VALUES (?, ?, ?, ?)
     `;
 
@@ -37,7 +37,7 @@ async function registerUser(username, email, password) {
     if (result.affectedRows === 1) {
       return { username, email };
     } else {
-      throw new Error("User registration failed");
+      throw new Error('User registration failed');
     }
   } catch (error) {
     throw error;
@@ -46,19 +46,19 @@ async function registerUser(username, email, password) {
 
 async function loginUser(email, password) {
   try {
-    const [rows] = await pool.query("SELECT * FROM Passenger WHERE Email = ?", [
+    const [rows] = await pool.query('SELECT * FROM passenger WHERE Email = ?', [
       email,
     ]);
 
     if (!rows[0]) {
-      console.log("User not found for email:", email);
+      console.log('User not found for email:', email);
       return null;
     }
 
     const passwordMatch = await bcrypt.compare(password, rows[0].Password);
 
     if (!passwordMatch) {
-      console.log("Invalid password for email:", email);
+      console.log('Invalid password for email:', email);
       return null;
     }
 
@@ -70,7 +70,7 @@ async function loginUser(email, password) {
 
     return user;
   } catch (err) {
-    console.error("Database error during login:", err);
+    console.error('Database error during login:', err);
     throw err;
   }
 }

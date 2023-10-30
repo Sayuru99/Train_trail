@@ -126,5 +126,4 @@ router.get('/', isAdmin, async (req, res) => {
   }
 });
 
-
 module.exports = router;
