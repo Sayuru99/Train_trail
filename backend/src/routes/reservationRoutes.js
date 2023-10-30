@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { isAuthenticated } = require('../middleware/authMiddleware');
-const { bookTrain, getTrainBookingDetails } = require('../models/trainBookingModel');
+const { authenticateJwt } = require('../middleware/authMiddleware');
+const { bookTrain, getTrainBookingDetails } = require('../models/reservationModel');
 
-router.post('/book', isAuthenticated, async (req, res) => {
+router.post('/book',  async (req, res) => {
   try {
     const bookingData = req.body;
     bookingData.PassengerID = req.user.PassengerID;
@@ -16,7 +16,7 @@ router.post('/book', isAuthenticated, async (req, res) => {
   }
 });
 
-router.get('/details/:bookingID', isAuthenticated, async (req, res) => {
+router.get('/details/:bookingID', authenticateJwt, async (req, res) => {
   try {
     const bookingID = req.params.bookingID;
 

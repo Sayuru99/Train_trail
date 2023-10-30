@@ -16,6 +16,9 @@ const Home = () => {
   const [toStation, setToStation] = useState("");
   const [stationNames, setStationNames] = useState([]);
   const [trains, setTrains] = useState([]);
+  const [fromStationName, setFromStationName] = useState("");
+  const [toStationName, setToStationName] = useState("");
+  const [ticketPrice, setTicketPrice] = useState("");
   const navigate = useNavigate();
 
   const handleShowModal = () => {
@@ -55,6 +58,32 @@ const Home = () => {
         console.error("Error fetching station names:", error);
       });
   }, []);
+  
+  const getTicketPrice = async (fromStationID, toStationID) => {
+    try {
+      const fromStationID = stationNames.find(
+        (station) => station.StationName === fromStation
+      )?.StationID;
+      
+      const toStationID = stationNames.find(
+        (station) => station.StationName === toStation
+      )?.StationID;
+      console.log(fromStationID);
+      console.log(toStationID);
+      const url = `http://localhost:3001/api/price/get-price?fromStationID=${fromStationID}&toStationID=${toStationID}`;
+
+      const response = await axios.get(url);
+      const price = response.data.price;
+      if (price !== null) {
+        setTicketPrice(price);
+      } else {
+        setTicketPrice(null); 
+      }
+    } catch (error) {
+      console.error('Error fetching ticket price:', error);
+      setTicketPrice(null); 
+    }
+  };
 
   const handleSearchTrains = () => {
     const fromStationID = stationNames.find(
@@ -64,7 +93,10 @@ const Home = () => {
       (station) => station.StationName === toStation
     )?.StationID;
 
-    console.log(fromStationID, toStationID);
+    setFromStationName(fromStation);
+    setToStationName(toStation);
+
+    // console.log(fromStationID, toStationID);
     if (fromStationID && toStationID) {
       axios
         .get(
@@ -200,12 +232,21 @@ const Home = () => {
               <thead>
                 <tr>
                   <th>Train Name</th>
+                  <th>{fromStationName} Station Arrival Time</th>
+                  <th>{toStationName} Station Arrival Time</th>
                 </tr>
               </thead>
               <tbody>
                 {trains.map((train, index) => (
                   <tr key={index}>
                     <td>{train.TrainName}</td>
+                    <td>{train.FromStationArrivalTime}</td>
+                    <td>{train.ToStationArrivalTime}</td>
+                    <td>
+                      <button onClick={() => getTicketPrice(train.fromStationID, train.toStationID)}>
+                        Details
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -213,6 +254,20 @@ const Home = () => {
           </Modal.Body>
         </Modal>
       )}
+
+<Modal show={ticketPrice !== null} onHide={() => setTicketPrice(null)}>
+  <Modal.Header closeButton>
+    <Modal.Title>Ticket Price</Modal.Title>
+  </Modal.Header>
+  <Modal.Body>
+    {ticketPrice !== null ? (
+      <p>Ticket Price: ${ticketPrice}</p>
+    ) : (
+      <p>Ticket price not found</p>
+    )}
+  </Modal.Body>
+</Modal>
+
     </div>
   );
 };

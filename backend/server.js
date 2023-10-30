@@ -31,11 +31,15 @@ const userRoutes = require('./src/routes/userRoutes');
 const trainRoutes = require('./src/routes/trainRoutes');
 const newsRoutes = require('./src/routes/newsRoutes');
 const stationRoutes = require('./src/routes/stationRoutes');
+const reservationRoutes = require('./src/routes/reservationRoutes');
+const priceRoutes = require('./src/routes/priceRoutes');
 const { authenticateJwt } = require('./src/middleware/authMiddleware');
 
 app.use('/api/auth', authRoutes); 
 app.use('/api/users', userRoutes);
 app.use('/api/trains', trainRoutes);
+app.use('/api/price', priceRoutes);
+app.use('/api/reservation', reservationRoutes);
 app.use('/api/stations', stationRoutes);
 app.use('/api/news', newsRoutes); 
 
