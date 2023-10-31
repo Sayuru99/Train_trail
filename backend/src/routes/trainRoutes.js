@@ -3,7 +3,7 @@ const router = express.Router();
 const { isAdmin } = require('../middleware/authMiddleware');
 const { getAllTrains, addTrain, addArrive, getTrainsBetweenStations } = require('../models/trainModel');
 
-router.get('/', isAdmin, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const trains = await getAllTrains();
     res.json({ trains });
@@ -21,6 +21,18 @@ router.post('/add', isAdmin, async (req, res) => {
   } catch (error) {
     console.error('Error adding train: ', error);
     res.status(500).json({ error: 'Train addition failed' });
+  }
+});
+
+router.put('/update/:trainID', isAdmin, async (req, res) => {
+  try {
+    const trainID = req.params.trainID;
+    const trainData = req.body;
+    const result = await updateTrain(trainID, trainData);
+    res.json(result);
+  } catch (error) {
+    console.error('Error updating train: ', error);
+    res.status(500).json({ error: 'Train update failed' });
   }
 });
 

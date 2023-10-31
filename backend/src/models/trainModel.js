@@ -62,24 +62,6 @@ async function addArrive(trainID, stationID) {
   }
 }
 
-// async function getTrainsBetweenStations(fromStationId, toStationId) {
-//   try {
-//     const getTrainsQuery = `
-//       SELECT t.TrainName
-//       FROM train t
-//       INNER JOIN arrive a1 ON t.TrainID = a1.TrainID
-//       INNER JOIN arrive a2 ON t.TrainID = a2.TrainID
-//       WHERE a1.StationID = ? AND a2.StationID = ?
-//     `;
-
-//     const connection = await pool.getConnection();
-//     const [trains] = await connection.query(getTrainsQuery, [fromStationId, toStationId]);
-//     connection.release();
-//     return trains;s
-//   } catch (error) {
-//     throw error;
-//   }
-// }
 async function getTrainsBetweenStations(fromStationId, toStationId) {
   try {
     const getTrainsQuery = `
