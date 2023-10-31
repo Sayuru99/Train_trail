@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Hero from "../assets/hero.png";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Table from "react-bootstrap/Table";
+import Navbar from "react-bootstrap/Navbar";
+import Nav from "react-bootstrap/Nav";
 import axios from "axios";
 import NewsCard from "../components/newsCard";
 
 const Home = () => {
   const [showModal, setShowModal] = useState(false);
   const [showTrainModal, setShowTrainModal] = useState(false);
+  const [showReserveButton, setShowReserveButton] = useState(false);
   const [news, setNews] = useState([]);
   const [fromStation, setFromStation] = useState("");
   const [toStation, setToStation] = useState("");
@@ -18,7 +21,9 @@ const Home = () => {
   const [trains, setTrains] = useState([]);
   const [fromStationName, setFromStationName] = useState("");
   const [toStationName, setToStationName] = useState("");
-  const [ticketPrice, setTicketPrice] = useState("");
+  const [ticketPrice, setTicketPrice] = useState(null);
+  const userToken = localStorage.getItem("token");
+  const [currentNewsIndex, setCurrentNewsIndex] = useState(0);
   const navigate = useNavigate();
 
   const handleShowModal = () => {
@@ -37,6 +42,24 @@ const Home = () => {
     localStorage.removeItem("token");
     navigate("/");
   };
+
+  const trainSchedule = [
+    {
+      trainName: "Express 1",
+      departureTime: "08:00 AM",
+      arrivalTime: "10:30 AM",
+    },
+    {
+      trainName: "Local 5",
+      departureTime: "09:15 AM",
+      arrivalTime: "11:45 AM",
+    },
+    {
+      trainName: "SuperFast 12",
+      departureTime: "12:30 PM",
+      arrivalTime: "02:45 PM",
+    },
+  ];
 
   useEffect(() => {
     axios
@@ -58,13 +81,42 @@ const Home = () => {
         console.error("Error fetching station names:", error);
       });
   }, []);
-  
+
+  const reserveTrain = (
+    trainID,
+    compartmentID,
+    stationID,
+    seatID,
+    price,
+    departureTime,
+    startTime
+  ) => {
+    const bookingData = {
+      TrainID: trainID,
+      CompartmentID: compartmentID,
+      StationID: stationID,
+      SeatID: seatID,
+      Price: price,
+      DepartureTime: departureTime,
+      StartTime: startTime,
+    };
+
+    axios
+      .post("http://localhost:3001/api/reservation/book", bookingData)
+      .then((response) => {
+        console.log("Booking successful:", response.data);
+      })
+      .catch((error) => {
+        console.error("Booking failed:", error);
+      });
+  };
+
   const getTicketPrice = async (fromStationID, toStationID) => {
     try {
       const fromStationID = stationNames.find(
         (station) => station.StationName === fromStation
       )?.StationID;
-      
+
       const toStationID = stationNames.find(
         (station) => station.StationName === toStation
       )?.StationID;
@@ -76,12 +128,14 @@ const Home = () => {
       const price = response.data.price;
       if (price !== null) {
         setTicketPrice(price);
+        setShowReserveButton(true);
       } else {
-        setTicketPrice(null); 
+        setTicketPrice(null);
       }
     } catch (error) {
-      console.error('Error fetching ticket price:', error);
-      setTicketPrice(null); 
+      console.error("Error fetching ticket price:", error);
+      setTicketPrice(null);
+      setShowReserveButton(false);
     }
   };
 
@@ -115,20 +169,23 @@ const Home = () => {
       console.error("Invalid station names selected");
     }
   };
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentNewsIndex((prevIndex) =>
+        prevIndex === news.length - 1 ? 0 : prevIndex + 1
+      );
+    }, 10000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [news]);
 
   return (
     <div
-      className="container-fluid p-0 m-0 bg-primary d-flex flex-column justify-content-center align-items-center"
+      className="container-fluid p-0 m-0  d-flex flex-column justify-content-center align-items-center"
       style={{ position: "relative", minHeight: "100vh", overflow: "hidden" }}
     >
-      <button
-        className="btn btn-light btn-sm position-absolute top-0 end-0 m-3"
-        onClick={handleLogout}
-        style={{ zIndex: 9999 }}
-      >
-        Logout
-      </button>
-
       <img
         src={Hero}
         alt="train"
@@ -138,7 +195,7 @@ const Home = () => {
 
       <div
         className="text-center text-dark"
-        style={{ position: "absolute", top: "20px", left: "0", right: "0" }}
+        style={{ position: "absolute", top: "100px", left: "0", right: "0" }}
       >
         <h1>Welcome to Train Trail</h1>
         <p>Online Advanced Ticket Reservation</p>
@@ -148,20 +205,48 @@ const Home = () => {
         >
           Get Started
         </button>
-        <div className="container mt-5">
-          <h2>Latest News</h2>
-          <div className="row">
-            {news.map((newsItem) => (
-              <div className="col-md-6 mb-4" key={newsItem.id}>
-                <NewsCard
-                  title={newsItem.Title}
-                  content={newsItem.Content}
-                  datePosted={newsItem.DatePosted}
-                />
-              </div>
-            ))}
+        <div className="row" style={{ width: "100%", margin: "0" }}>
+        <div className="col-md-6">
+          <h2>Train Schedule</h2>
+          <Table striped bordered hover style={{ backgroundColor: "#f0f0f0" }}>
+            <thead>
+              <tr>
+                <th>Train Name</th>
+                <th>Departure Time</th>
+                <th>Arrival Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {trainSchedule.map((train, index) => (
+                <tr key={index}>
+                  <td>{train.trainName}</td>
+                  <td>{train.departureTime}</td>
+                  <td>{train.arrivalTime}</td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </div>
+        <div className="col-md-6">
+          {/* News Cards */}
+          <div className="container mt-5" style={{ width: "100%", overflow: "hidden" }}>
+            <h2>Latest News</h2>
+            <div className="row">
+              {news.map((newsItem) => (
+                <div className="col-md-6 mb-4" key={newsItem.id}>
+                  <div className="news-card" style={{ width: "80%", marginLeft: "5%" }}>
+                    <NewsCard
+                      title={newsItem.Title}
+                      content={newsItem.Content}
+                      datePosted={newsItem.DatePosted}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
+      </div>
       </div>
 
       <Modal show={showModal} onHide={handleCloseModal}>
@@ -209,14 +294,7 @@ const Home = () => {
         </Modal.Footer>
       </Modal>
 
-      <div className="container mt-5">
-        <h2>Available Trains</h2>
-        <ul>
-          {trains.map((train) => (
-            <li key={train.TrainName}>{train.TrainName}</li>
-          ))}
-        </ul>
-      </div>
+
       {trains.length > 0 && (
         <Modal
           show={showTrainModal}
@@ -243,7 +321,12 @@ const Home = () => {
                     <td>{train.FromStationArrivalTime}</td>
                     <td>{train.ToStationArrivalTime}</td>
                     <td>
-                      <button onClick={() => getTicketPrice(train.fromStationID, train.toStationID)}>
+                      <button
+                        className="btn btn-light"
+                        onClick={() =>
+                          getTicketPrice(train.fromStationID, train.toStationID)
+                        }
+                      >
                         Details
                       </button>
                     </td>
@@ -255,19 +338,25 @@ const Home = () => {
         </Modal>
       )}
 
-<Modal show={ticketPrice !== null} onHide={() => setTicketPrice(null)}>
-  <Modal.Header closeButton>
-    <Modal.Title>Ticket Price</Modal.Title>
-  </Modal.Header>
-  <Modal.Body>
-    {ticketPrice !== null ? (
-      <p>Ticket Price: ${ticketPrice}</p>
-    ) : (
-      <p>Ticket price not found</p>
-    )}
-  </Modal.Body>
-</Modal>
-
+      <Modal show={ticketPrice !== null} onHide={() => setTicketPrice(null)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Ticket Price and Train Details</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {ticketPrice !== null ? (
+            <div>
+              <p>Ticket Price: ${ticketPrice}</p>
+              {showReserveButton && (
+                <button className="btn btn-primary" onClick={reserveTrain}>
+                  Reserve
+                </button>
+              )}
+            </div>
+          ) : (
+            <p>Ticket price not found</p>
+          )}
+        </Modal.Body>
+      </Modal>
     </div>
   );
 };
