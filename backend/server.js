@@ -33,6 +33,7 @@ const newsRoutes = require('./src/routes/newsRoutes');
 const stationRoutes = require('./src/routes/stationRoutes');
 const reservationRoutes = require('./src/routes/reservationRoutes');
 const priceRoutes = require('./src/routes/priceRoutes');
+const feedbackRoutes = require('./src/routes/feedbackRoutes');
 const { authenticateJwt } = require('./src/middleware/authMiddleware');
 
 app.use('/api/auth', authRoutes); 
@@ -42,6 +43,7 @@ app.use('/api/price', priceRoutes);
 app.use('/api/reservation', reservationRoutes);
 app.use('/api/stations', stationRoutes);
 app.use('/api/news', newsRoutes); 
+app.use('/api/feedback', feedbackRoutes); 
 
 app.get('/api/protected', authenticateJwt, (req, res) => {
   res.json({ message: 'Protected route' });

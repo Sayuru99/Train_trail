@@ -5,6 +5,9 @@ import ArriveForm from "../../components/ArriveForm";
 
 const AdminPanel = () => {
   const [trains, setTrains] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null); 
+  const [showUserModal, setShowUserModal] = useState(false); 
   const [newTrain, setNewTrain] = useState({
     TrainName: "",
     RouteID: "",
@@ -17,9 +20,50 @@ const AdminPanel = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedTrain, setSelectedTrain] = useState(null);
 
+  const fetchUserList = async () => {
+    try {
+      const response = await fetch("http://localhost:3001/api/users/");
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data.users);
+      } else {
+        console.error("Failed to fetch user list");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
   useEffect(() => {
     fetchTrainList();
+    fetchUserList();
   }, []);
+
+  const handleEditUser = (user) => {
+    setSelectedUser(user);
+    setShowUserModal(true);
+  };
+
+  const handleSaveUserEdit = async () => {
+    try {
+      const response = await fetch(`http://localhost:3001/api/users/update/${selectedUser.UserID}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(selectedUser),
+      });
+
+      if (response.ok) {
+        fetchUserList();
+        setShowUserModal(false);
+      } else {
+        console.error("Failed to update the user");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
 
   const fetchTrainList = async () => {
     try {
@@ -194,7 +238,52 @@ const AdminPanel = () => {
   </Button>
 </Modal.Footer>
 </Modal>
-</div>
+<h2>User List</h2>
+      <ListGroup>
+        {users.map((user) => (
+          <ListGroup.Item key={user.UserID}>
+            {user.Username}
+            <Button
+              variant="warning"
+              className="ml-2 m-2"
+              onClick={() => handleEditUser(user)}
+            >
+              <PencilSquare size={20} />
+            </Button>
+          </ListGroup.Item>
+        ))}
+      </ListGroup>
+      
+      {/* User Details Modal */}
+      <Modal show={showUserModal} onHide={() => setShowUserModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit User</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group>
+              <Form.Label>Username</Form.Label>
+              <Form.Control
+                type="text"
+                value={selectedUser?.Username}
+                onChange={(e) =>
+                  setSelectedUser({ ...selectedUser, Username: e.target.value })
+                }
+              />
+            </Form.Group>
+            {/* Add similar Form.Group elements for other user details */}
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowUserModal(false)}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={handleSaveUserEdit}>
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </div>
   );
 };
 

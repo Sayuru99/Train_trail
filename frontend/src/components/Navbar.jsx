@@ -39,6 +39,9 @@ const NavBar = () => {
                 <Nav.Link to="/auth" as={Link} style={{ fontWeight: "bold" }}>
                   Login
                 </Nav.Link>
+                <Nav.Link to="/feedback" as={Link} style={{ fontWeight: "bold" }}>
+                  Feedback
+                </Nav.Link>
               </>
             )}
           </Nav>

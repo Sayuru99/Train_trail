@@ -8,6 +8,7 @@ import AdminDashboard from './pages/admin/dashboard';
 import PhotoGallery from './pages/Gallery';
 import About from './pages/About';
 import Navbar from './components/Navbar';
+import Feedback from './pages/feedback';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/gallery" element={<PhotoGallery />} />
           <Route path="/about" element={<About />} />
+          <Route path="/feedback" element={<Feedback />} />
           <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
       </div>

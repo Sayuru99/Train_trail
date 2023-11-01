@@ -45,17 +45,20 @@ const Home = () => {
 
   const trainSchedule = [
     {
-      trainName: "Express 1",
+      trainName: "Ruhunu Kumari",
+      startStation: "Pettah",
       departureTime: "08:00 AM",
       arrivalTime: "10:30 AM",
     },
     {
-      trainName: "Local 5",
+      trainName: "Galu Kumari",
+      startStation: "Colombo Maradana",
       departureTime: "09:15 AM",
       arrivalTime: "11:45 AM",
     },
     {
-      trainName: "SuperFast 12",
+      trainName: "Sagarika",
+      startStation: "Pettah",
       departureTime: "12:30 PM",
       arrivalTime: "02:45 PM",
     },
@@ -184,7 +187,7 @@ const Home = () => {
   return (
     <div
       className="container-fluid p-0 m-0  d-flex flex-column justify-content-center align-items-center"
-      style={{ position: "relative", minHeight: "100vh", overflow: "hidden" }}
+      style={{ position: "relative", overflow: "hidden" }}
     >
       <img
         src={Hero}
@@ -212,6 +215,7 @@ const Home = () => {
             <thead>
               <tr>
                 <th>Train Name</th>
+                <th>Start Station</th>
                 <th>Departure Time</th>
                 <th>Arrival Time</th>
               </tr>
@@ -220,6 +224,7 @@ const Home = () => {
               {trainSchedule.map((train, index) => (
                 <tr key={index}>
                   <td>{train.trainName}</td>
+                  <td>{train.startStation}</td>
                   <td>{train.departureTime}</td>
                   <td>{train.arrivalTime}</td>
                 </tr>
@@ -306,7 +311,7 @@ const Home = () => {
             <Modal.Title>Available Trains</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <Table striped bordered hover>
+            <Table striped bordered hover data-aos="fade-up">
               <thead>
                 <tr>
                   <th>Train Name</th>
